@@ -1,0 +1,223 @@
+# 🏛️ 软考数据库系统工程师：下午题 SQL 核心语法高频挖空与终极答题模板
+
+本模板严格基于软考下午案例分析题的命题规律与真题语境（融合完整性约束、复杂查询、存储过程与触发器）进行编排，专供考前精准背诵与快速回顾。
+
+---
+
+# 🎯 核心考点一：CREATE TABLE 与三大完整性约束
+
+软考对 `CREATE TABLE` 的考查极其喜欢在大题的第一问出现，主要挖空点集中在：
+
+- 主键（实体完整性）
+- 外键（参照完整性）
+- CHECK 约束（用户定义完整性）
+
+---
+
+## 1. 标准语法填空模板
+
+```sql
+CREATE TABLE 表名 (
+    -- 1. 主键定义（单列主键直接在列后声明）
+    主键列名 数据类型 PRIMARY KEY,
+
+    -- 2. 普通列与非空约束
+    列名2 数据类型 NOT NULL,
+
+    -- 3. 外键定义：常考挖空点 REFERENCES
+    -- 必须指向父表的主键
+    外键列名 数据类型 REFERENCES 父表名 (父表主键列名),
+
+    -- 4. 检查约束：常考挖空点 CHECK
+    -- 用于限制取值范围（如库存最低为0、性别限男女）
+    数值列名 INT CHECK (数值列名 >= 0)
+);
+
+-- 5. 复合主键定义
+-- 如果主键由多列组成，必须在所有列声明完后单独定义
+-- PRIMARY KEY (主键列1, 主键列2)
+2. 历年真题高频挖空映射表
+挖空位置 / 典型代码上下文	标准正确答案	讲师避坑提示
+CREATE ____ PART (	TABLE	基础关键字，注意大小写均可
+Pno CHAR(10) ____	PRIMARY KEY	定义单列主键（实体完整性）
+Sno CHAR(4) ____ STORE(Sno)	REFERENCES	参照完整性关键字，后面直接接被引用的父表及主键
+Stock INT ____;	CHECK(stock>=0)	若题目要求“库存量最低为0”，必须显式使用 CHECK
+🎯 核心考点二：高级 SELECT 查询与 VIEW（视图）操作
+
+下午题 SQL 填空往往会给出一个复杂的业务查询，重点考查：
+
+聚合函数
+分组过滤
+集合操作（UNION）
+子查询（IN / NOT IN）
+1. 标准语法填空模板
+-- 1. 创建视图
+-- 常考挖空点：AS SELECT ... GROUP BY
+
+CREATE VIEW 视图名 AS
+    SELECT 分组列, SUM(数量列) AS 别名
+    FROM 源表
+    GROUP BY 分组列;
+
+-- 只要 SELECT 中出现聚合函数且有普通列，必须使用 GROUP BY
+
+
+-- 2. 集合与嵌套复杂查询
+-- 常考挖空点：UNION / NOT IN / ORDER BY ... DESC
+
+SELECT A.列1, A.列2, (A.列3 + B.列4) AS 总量
+FROM 表A, 表B
+WHERE 表A.关联键 = 表B.关联键
+
+UNION ALL
+
+-- 集合连词：
+-- UNION      -> 去重
+-- UNION ALL  -> 保留重复
+
+SELECT 列1, 列2, 列3 AS 总量
+FROM 表A
+WHERE 关联键 NOT IN
+    (SELECT DISTINCT 关联键 FROM 表C)
+
+ORDER BY 总量 DESC;
+
+-- ASC  -> 升序（默认）
+-- DESC -> 降序
+2. 历年真题高频挖空映射表
+挖空位置 / 典型代码上下文	标准正确答案	讲师避坑提示
+SELECT Pno, ____ AS Usage FROM PJ	SUM(Qty)	求总量用 SUM；统计次数才用 COUNT
+FROM PJ ____ BY Pno;	GROUP	聚合函数配合普通列时必须 GROUP BY
+WHERE PART.Pno=PART_USED.Pno ____ SELECT ...	UNION ALL	保留重复记录时必须写 UNION ALL
+WHERE Pno ____ (SELECT DISTINCT Pno FROM PJ)	NOT IN	查询“未参与/未使用”数据常用 NOT IN
+ORDER BY Total ____	DESC	题目要求“降序排列”必须写 DESC
+3. 数据更新与删除挖空（补充常考点）
+修改数据
+UPDATE 表名
+SET 列名 = 新值
+WHERE 条件;
+
+示例：
+
+UPDATE part
+SET sno='A002'
+WHERE sno='A006';
+删除记录
+DELETE FROM 表名
+WHERE 条件;
+
+示例：
+
+DELETE FROM store
+WHERE sno='A006';
+🎯 核心考点三：PL/SQL 存储过程（Stored Procedure）与游标（Cursor）
+
+软考下午题对存储过程的考查，90% 集中在：
+
+游标声明
+游标打开
+游标抓取
+游标关闭
+
+这一整套流程链条。
+
+1. 标准语法填空模板
+CREATE PROCEDURE 存储过程名 (
+    参数名 IN/OUT 数据类型
+)
+
+DECLARE
+    v_variable1 数据类型;
+    v_variable2 数据类型;
+
+    -- 1. 游标声明
+    CURSOR 游标名 IS
+        SELECT 字段1, 字段2
+        FROM 表名;
+
+BEGIN
+
+    -- 2. 打开游标
+    OPEN 游标名;
+
+    LOOP
+
+        -- 3. 抓取数据 INTO 变量
+        FETCH 游标名
+        INTO v_variable1, v_variable2;
+
+        -- 4. 退出条件：游标属性 %NOTFOUND
+        IF 游标名%NOTFOUND THEN
+            EXIT;
+        END IF;
+
+        -- 核心业务处理...
+
+    END LOOP;
+
+    -- 5. 关闭游标与事务提交
+    CLOSE 游标名;
+
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+
+END;
+🎯 核心考点四：行级触发器（Trigger）与伪记录（NEW / OLD）
+
+触发器常考核心：
+
+触发时机
+触发事件
+作用范围
+NEW / OLD 的使用
+1. 标准语法填空模板
+CREATE TRIGGER 触发器名
+
+{BEFORE | AFTER}
+{INSERT | UPDATE | DELETE}
+ON 表名
+
+FOR EACH ROW
+
+WHEN (NEW.状态列 = 1)
+
+DECLARE
+    v_temp VARCHAR(30);
+
+BEGIN
+
+    -- BEGIN...END 中引用新行字段
+    -- 标准 PL/SQL 必须加冒号 :
+
+    SELECT 手机号
+    INTO v_temp
+    FROM 用户表
+    WHERE 用户ID = :NEW.用户ID;
+
+END;
+🛠️ 阅卷人高阶总结：NEW 与 OLD 的终极选择指南
+触发事件	可使用伪记录	含义与使用场景
+INSERT	只允许使用 NEW	NEW.字段名 表示刚插入的新数据；此时 OLD 为 NULL
+DELETE	只允许使用 OLD	OLD.字段名 表示被删除的旧数据；此时 NEW 为 NULL
+UPDATE	NEW 和 OLD 均可	OLD 表示修改前；NEW 表示修改后，常用于计算差额
+📝 临考模拟演练（闭眼默写检测）
+
+请尝试在脑海中或草稿纸上完成以下填空：
+
+声明外键参照完整性的关键字是：______
+约束取值范围（如：工作年限 >= 0）的关键字是：______
+把两个 SELECT 查询结果集合并并且去重的关键字是：______
+存储过程中抓取游标数据的动作是：
+______ 游标名 INTO 变量;
+声明行级触发器的固定短语是：
+______ ______ ______
+✅ 标准答案
+题号	答案
+1	REFERENCES
+2	CHECK
+3	UNION
+4	FETCH
+5	FOR EACH ROW

@@ -1,4 +1,23 @@
-# Preparation for the Intermediate Database System Engineer Professional Examination
+---
+title: README
+type: project-dashboard
+status: active
+project: 软考中级数据库系统工程师备考
+area: Career and Certification
+exam: 数据库系统工程师
+exam_level: 软考中级
+stage: tracking
+category: overview
+source_folder: .
+created: 2026-06-03
+updated: 2026-06-03
+tags:
+  - type/dashboard
+  - status/active
+  - exam/db-engineer
+  - project/soft-exam-db-engineer
+---
+
 # 软考中级｜数据库系统工程师｜项目总览
 
 - 考试日期：2026-05-23
